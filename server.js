@@ -22,6 +22,10 @@ sequelize.authenticate()
     console.error('Unable to connect to the database:', err);
   });
 
+app.get('/', (req, res) => {
+  res.send('Welcome to backend');
+});
+
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/fundraisers', require('./routes/fundraiser'));
 app.use('/api/donations', require('./routes/donation'));
