@@ -6,11 +6,9 @@ require('dotenv').config();
 
 const app = express();
 
-
 app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
 
 sequelize.authenticate()
   .then(() => {
@@ -23,7 +21,6 @@ sequelize.authenticate()
   .catch((err) => {
     console.error('Unable to connect to the database:', err);
   });
-
 
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/fundraisers', require('./routes/fundraiser'));
