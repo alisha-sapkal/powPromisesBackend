@@ -60,6 +60,7 @@ const Fundraiser = sequelize.define("Fundraiser", {
   },
 });
 
-Fundraiser.belongsTo(User, { as: "creator" });
+Fundraiser.belongsTo(User, { as: "creator", foreignKey: "creatorId" });
+
 
 module.exports = Fundraiser;

@@ -4,6 +4,7 @@ const multer = require("multer");
 const path = require("path");
 const Fundraiser = require("../models/Fundraiser");
 const auth = require("../middleware/auth");
+const User = require("../models/User");
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {

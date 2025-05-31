@@ -2,6 +2,8 @@ const express = require("express");
 const router = express.Router();
 const Donation = require("../models/Donation");
 const auth = require("../middleware/auth");
+const User = require('../models/User');
+
 
 router.post("/", auth, async (req, res) => {
   try {
