@@ -31,7 +31,7 @@ router.post("/signup", async (req, res) => {
 
     const token = jwt.sign(
       { id: user.id },
-      process.env.JWT_SECRET || "your_jwt_secret_key_here",
+      process.env.JWT_SECRET || "f64c31ea123b3f4d3d365fbac62446def9d749f47adfb2e4464164d15c9c89dc883aadea6d424e98bb5211b50043b4d6818c074de823715d3f3693abcab1481a",
       { expiresIn: process.env.JWT_EXPIRE || "30d" }
     );
 
@@ -87,7 +87,7 @@ router.post("/signin", async (req, res) => {
 
     const token = jwt.sign(
       { id: user.id },
-      process.env.JWT_SECRET || "your_jwt_secret_key_here",
+      process.env.JWT_SECRET || "f64c31ea123b3f4d3d365fbac62446def9d749f47adfb2e4464164d15c9c89dc883aadea6d424e98bb5211b50043b4d6818c074de823715d3f3693abcab1481a",
       { expiresIn: process.env.JWT_EXPIRE || "30d" }
     );
 
