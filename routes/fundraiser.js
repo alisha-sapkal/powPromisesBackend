@@ -43,7 +43,7 @@ router.post("/", auth, upload.single("image"), async (req, res) => {
     const fundraiser = await Fundraiser.create({
       title,
       category,
-      targetAmount,
+      targetAmount: parseFloat(targetAmount),
       description,
       imageUrl,
       creatorId: req.user.id,
@@ -56,13 +56,14 @@ router.post("/", auth, upload.single("image"), async (req, res) => {
   } catch (error) {
     console.error("Create fundraiser error:", error);
 
-    if (error.name === "SequelizeValidationError") {
+    if (error.name === "ValidationError") {
+      const errors = Object.values(error.errors).map(err => ({
+        field: err.path,
+        message: err.message,
+      }));
       return res.status(400).json({
         message: "Validation error",
-        errors: error.errors.map((err) => ({
-          field: err.path,
-          message: err.message,
-        })),
+        errors,
       });
     }
 
@@ -72,15 +73,9 @@ router.post("/", auth, upload.single("image"), async (req, res) => {
 
 router.get("/", async (req, res) => {
   try {
-    const fundraisers = await Fundraiser.findAll({
-      include: [
-        {
-          model: User,
-          as: "creator",
-          attributes: ["id", "name", "email"],
-        },
-      ],
-    });
+    const fundraisers = await Fundraiser.find()
+      .populate('creatorId', 'name email')
+      .sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
@@ -94,15 +89,8 @@ router.get("/", async (req, res) => {
 
 router.get("/:id", async (req, res) => {
   try {
-    const fundraiser = await Fundraiser.findByPk(req.params.id, {
-      include: [
-        {
-          model: User,
-          as: "creator",
-          attributes: ["id", "name", "email"],
-        },
-      ],
-    });
+    const fundraiser = await Fundraiser.findById(req.params.id)
+      .populate('creatorId', 'name email');
 
     if (!fundraiser) {
       return res.status(404).json({ message: "Fundraiser not found" });

@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const sequelize = require('./config/database');
+const connectDB = require('./config/database');
 require('dotenv').config();
 
 const app = express();
@@ -10,17 +10,8 @@ app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-sequelize.authenticate()
-  .then(() => {
-    console.log('Database connection has been established successfully.');
-    return sequelize.sync({ alter: true }); 
-  })
-  .then(() => {
-    console.log('Database synchronized successfully');
-  })
-  .catch((err) => {
-    console.error('Unable to connect to the database:', err);
-  });
+// Connect to MongoDB
+connectDB();
 
 app.get('/', (req, res) => {
   res.send('Welcome to backend');

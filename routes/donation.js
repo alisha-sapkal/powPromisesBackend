@@ -4,12 +4,11 @@ const Donation = require("../models/Donation");
 const auth = require("../middleware/auth");
 const User = require('../models/User');
 
-
 router.post("/", auth, async (req, res) => {
   try {
-    const { name, email, phone, amount } = req.body;
+    const { name, email, phone, amount, fundraiserId } = req.body;
 
-    if (!name || !email || !phone || !amount) {
+    if (!name || !email || !phone || !amount || !fundraiserId) {
       return res.status(400).json({
         message: "Please provide all required fields",
         fields: {
@@ -17,6 +16,7 @@ router.post("/", auth, async (req, res) => {
           email: !email ? "Email is required" : null,
           phone: !phone ? "Phone is required" : null,
           amount: !amount ? "Amount is required" : null,
+          fundraiserId: !fundraiserId ? "Fundraiser ID is required" : null,
         },
       });
     }
@@ -25,9 +25,10 @@ router.post("/", auth, async (req, res) => {
       name,
       email,
       phone,
-      amount,
+      amount: parseFloat(amount),
       status: "pending",
       userId: req.user.id,
+      fundraiserId,
     });
 
     donation.status = "completed";
@@ -40,13 +41,14 @@ router.post("/", auth, async (req, res) => {
   } catch (error) {
     console.error("Create donation error:", error);
 
-    if (error.name === "SequelizeValidationError") {
+    if (error.name === "ValidationError") {
+      const errors = Object.values(error.errors).map(err => ({
+        field: err.path,
+        message: err.message,
+      }));
       return res.status(400).json({
         message: "Validation error",
-        errors: error.errors.map((err) => ({
-          field: err.path,
-          message: err.message,
-        })),
+        errors,
       });
     }
 
@@ -56,15 +58,10 @@ router.post("/", auth, async (req, res) => {
 
 router.get("/", auth, async (req, res) => {
   try {
-    const donations = await Donation.findAll({
-      include: [
-        {
-          model: User,
-          as: "donor",
-          attributes: ["id", "name", "email"],
-        },
-      ],
-    });
+    const donations = await Donation.find()
+      .populate('userId', 'name email')
+      .populate('fundraiserId', 'title')
+      .sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
@@ -78,15 +75,9 @@ router.get("/", auth, async (req, res) => {
 
 router.get("/:id", auth, async (req, res) => {
   try {
-    const donation = await Donation.findByPk(req.params.id, {
-      include: [
-        {
-          model: User,
-          as: "donor",
-          attributes: ["id", "name", "email"],
-        },
-      ],
-    });
+    const donation = await Donation.findById(req.params.id)
+      .populate('userId', 'name email')
+      .populate('fundraiserId', 'title');
 
     if (!donation) {
       return res.status(404).json({ message: "Donation not found" });

@@ -1,66 +1,53 @@
-const { DataTypes } = require("sequelize");
-const sequelize = require("../config/database");
-const User = require("./User");
+const mongoose = require('mongoose');
 
-const Fundraiser = sequelize.define("Fundraiser", {
-  id: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true,
-  },
+const fundraiserSchema = new mongoose.Schema({
   title: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    validate: {
-      notEmpty: {
-        msg: "Title is required",
-      },
-    },
+    type: String,
+    required: [true, 'Title is required'],
+    trim: true
   },
   category: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    validate: {
-      isIn: {
-        args: [["medical", "education", "emergency", "other"]],
-        msg: "Invalid category",
-      },
-    },
+    type: String,
+    required: [true, 'Category is required'],
+    enum: {
+      values: ['medical', 'education', 'emergency', 'other'],
+      message: 'Invalid category'
+    }
   },
   targetAmount: {
-    type: DataTypes.DECIMAL(10, 2),
-    allowNull: false,
-    validate: {
-      min: {
-        args: [0],
-        msg: "Target amount must be greater than 0",
-      },
-    },
+    type: Number,
+    required: [true, 'Target amount is required'],
+    min: [0, 'Target amount must be greater than 0']
   },
   description: {
-    type: DataTypes.TEXT,
-    allowNull: false,
-    validate: {
-      notEmpty: {
-        msg: "Description is required",
-      },
-    },
+    type: String,
+    required: [true, 'Description is required'],
+    trim: true
   },
   imageUrl: {
-    type: DataTypes.STRING,
-    allowNull: false,
+    type: String,
+    required: [true, 'Image URL is required']
   },
   currentAmount: {
-    type: DataTypes.DECIMAL(10, 2),
-    defaultValue: 0,
+    type: Number,
+    default: 0,
+    min: [0, 'Current amount cannot be negative']
   },
   status: {
-    type: DataTypes.ENUM("active", "completed", "cancelled"),
-    defaultValue: "active",
+    type: String,
+    enum: {
+      values: ['active', 'completed', 'cancelled'],
+      message: 'Invalid status'
+    },
+    default: 'active'
   },
+  creatorId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: [true, 'Creator is required']
+  }
+}, {
+  timestamps: true
 });
 
-Fundraiser.belongsTo(User, { as: "creator", foreignKey: "creatorId" });
-
-
-module.exports = Fundraiser;
+module.exports = mongoose.model('Fundraiser', fundraiserSchema);

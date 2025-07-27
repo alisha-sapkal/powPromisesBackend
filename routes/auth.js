@@ -18,7 +18,7 @@ router.post("/signup", async (req, res) => {
       });
     }
 
-    const existingUser = await User.findOne({ where: { email } });
+    const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
     }
@@ -30,7 +30,7 @@ router.post("/signup", async (req, res) => {
     });
 
     const token = jwt.sign(
-      { id: user.id },
+      { id: user._id },
       process.env.JWT_SECRET || "f64c31ea123b3f4d3d365fbac62446def9d749f47adfb2e4464164d15c9c89dc883aadea6d424e98bb5211b50043b4d6818c074de823715d3f3693abcab1481a",
       { expiresIn: process.env.JWT_EXPIRE || "30d" }
     );
@@ -39,7 +39,7 @@ router.post("/signup", async (req, res) => {
       success: true,
       token,
       user: {
-        id: user.id,
+        id: user._id,
         name: user.name,
         email: user.email,
       },
@@ -47,13 +47,14 @@ router.post("/signup", async (req, res) => {
   } catch (error) {
     console.error("Signup error:", error);
 
-    if (error.name === "SequelizeValidationError") {
+    if (error.name === "ValidationError") {
+      const errors = Object.values(error.errors).map(err => ({
+        field: err.path,
+        message: err.message,
+      }));
       return res.status(400).json({
         message: "Validation error",
-        errors: error.errors.map((err) => ({
-          field: err.path,
-          message: err.message,
-        })),
+        errors,
       });
     }
 
@@ -75,7 +76,7 @@ router.post("/signin", async (req, res) => {
       });
     }
 
-    const user = await User.findOne({ where: { email } });
+    const user = await User.findOne({ email });
     if (!user) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
@@ -86,7 +87,7 @@ router.post("/signin", async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: user.id },
+      { id: user._id },
       process.env.JWT_SECRET || "f64c31ea123b3f4d3d365fbac62446def9d749f47adfb2e4464164d15c9c89dc883aadea6d424e98bb5211b50043b4d6818c074de823715d3f3693abcab1481a",
       { expiresIn: process.env.JWT_EXPIRE || "30d" }
     );
@@ -95,7 +96,7 @@ router.post("/signin", async (req, res) => {
       success: true,
       token,
       user: {
-        id: user.id,
+        id: user._id,
         name: user.name,
         email: user.email,
       },

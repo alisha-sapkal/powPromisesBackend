@@ -1,60 +1,50 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
-const User = require('./User');
+const mongoose = require('mongoose');
 
-const Donation = sequelize.define('Donation', {
-  id: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true
-  },
+const donationSchema = new mongoose.Schema({
   name: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    validate: {
-      notEmpty: {
-        msg: 'Name is required'
-      }
-    }
+    type: String,
+    required: [true, 'Name is required'],
+    trim: true
   },
   email: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    validate: {
-      isEmail: {
-        msg: 'Please enter a valid email address'
-      }
-    }
+    type: String,
+    required: [true, 'Email is required'],
+    match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please enter a valid email address']
   },
   phone: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    validate: {
-      notEmpty: {
-        msg: 'Phone number is required'
-      }
-    }
+    type: String,
+    required: [true, 'Phone number is required'],
+    trim: true
   },
   amount: {
-    type: DataTypes.DECIMAL(10, 2),
-    allowNull: false,
-    validate: {
-      min: {
-        args: [1],
-        msg: 'Amount must be at least 1'
-      }
-    }
+    type: Number,
+    required: [true, 'Amount is required'],
+    min: [1, 'Amount must be at least 1']
   },
   status: {
-    type: DataTypes.ENUM('pending', 'completed', 'failed'),
-    defaultValue: 'pending'
+    type: String,
+    enum: {
+      values: ['pending', 'completed', 'failed'],
+      message: 'Invalid status'
+    },
+    default: 'pending'
   },
   paymentId: {
-    type: DataTypes.STRING,
-    allowNull: true
+    type: String,
+    default: null
+  },
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: [true, 'User is required']
+  },
+  fundraiserId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Fundraiser',
+    required: [true, 'Fundraiser is required']
   }
+}, {
+  timestamps: true
 });
 
-Donation.belongsTo(User, { as: 'donor', foreignKey: 'userId' });
-
-module.exports = Donation; 
+module.exports = mongoose.model('Donation', donationSchema); 
