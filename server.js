@@ -6,7 +6,7 @@ require('dotenv').config();
 
 const app = express();
 
-const allowedOrigin = process.env.FRONTEND_URL || '*';
+const allowedOrigin = process.env.FRONTEND_URL || "https://pow-promises-ui-ncku.vercel.app";
 app.use(cors({
   origin: allowedOrigin,
   credentials: true
