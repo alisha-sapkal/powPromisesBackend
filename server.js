@@ -6,15 +6,19 @@ require('dotenv').config();
 
 const app = express();
 
-app.use(cors());
+const allowedOrigin = process.env.FRONTEND_URL || '*';
+app.use(cors({
+  origin: allowedOrigin,
+  credentials: true
+}));
+
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Connect to MongoDB
 connectDB();
 
 app.get('/', (req, res) => {
-  res.send('Welcome to backend');
+  res.send(`Welcome to the deployed backend!<br>Connected to frontend: ${allowedOrigin}`);
 });
 
 app.use('/api/auth', require('./routes/auth'));
@@ -24,4 +28,5 @@ app.use('/api/donations', require('./routes/donation'));
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
-}); 
+  console.log(`CORS allowed origin: ${allowedOrigin}`);
+});
