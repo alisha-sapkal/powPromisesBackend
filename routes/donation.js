@@ -6,9 +6,9 @@ const User = require('../models/User');
 
 router.post("/", auth, async (req, res) => {
   try {
-    const { name, email, phone, amount, fundraiserId } = req.body;
+    const { name, email, phone, amount } = req.body;
 
-    if (!name || !email || !phone || !amount || !fundraiserId) {
+    if (!name || !email || !phone || !amount) {
       return res.status(400).json({
         message: "Please provide all required fields",
         fields: {
@@ -16,7 +16,6 @@ router.post("/", auth, async (req, res) => {
           email: !email ? "Email is required" : null,
           phone: !phone ? "Phone is required" : null,
           amount: !amount ? "Amount is required" : null,
-          fundraiserId: !fundraiserId ? "Fundraiser ID is required" : null,
         },
       });
     }
@@ -28,7 +27,6 @@ router.post("/", auth, async (req, res) => {
       amount: parseFloat(amount),
       status: "pending",
       userId: req.user.id,
-      fundraiserId,
     });
 
     donation.status = "completed";
