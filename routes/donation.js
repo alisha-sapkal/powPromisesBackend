@@ -2,23 +2,33 @@ const express = require("express");
 const router = express.Router();
 const Donation = require("../models/Donation");
 const auth = require("../middleware/auth");
-const User = require('../models/User');
+const Fundraiser = require("../models/Fundraiser");
 
 router.post("/", auth, async (req, res) => {
   try {
-    const { name, email, phone, amount, fundraiserId } = req.body;
+    // Use `let` to allow fundraiserId to be modified
+    let { name, email, phone, amount, fundraiserId } = req.body;
 
-    if (!name || !email || !phone || !amount || !fundraiserId) {
+    // Only require the fields the user actually fills out in the form
+    if (!name || !email || !phone || !amount) {
       return res.status(400).json({
-        message: "Please provide all required fields",
+        message: "Please provide name, email, phone, and amount.",
         fields: {
           name: !name ? "Name is required" : null,
           email: !email ? "Email is required" : null,
           phone: !phone ? "Phone is required" : null,
           amount: !amount ? "Amount is required" : null,
-          fundraiserId: !fundraiserId ? "Fundraiser ID is required" : null,
         },
       });
+    }
+
+    // If no fundraiserId is provided, find the latest one automatically.
+    if (!fundraiserId) {
+      const latestFundraiser = await Fundraiser.findOne().sort({ createdAt: -1 });
+      if (!latestFundraiser) {
+        return res.status(400).json({ message: "Cannot make a donation because no fundraisers exist." });
+      }
+      fundraiserId = latestFundraiser._id;
     }
 
     const donation = await Donation.create({
@@ -26,13 +36,10 @@ router.post("/", auth, async (req, res) => {
       email,
       phone,
       amount: parseFloat(amount),
-      status: "pending",
+      status: "completed", // Set status directly to avoid a second database call
       fundraiserId,
       userId: req.user.id,
     });
-
-    donation.status = "completed";
-    await donation.save();
 
     res.status(201).json({
       success: true,
